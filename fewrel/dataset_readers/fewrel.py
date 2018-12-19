@@ -32,9 +32,6 @@ class FewRelDatasetReader(DatasetReader):
         Passed to ``DatasetReader``.  If this is ``True``, training will start sooner, but will
         take longer per batch.  This also allows training with datasets that are too large to fit
         in memory.
-    tokenizer : ``Tokenizer``, optional
-        Tokenizer to use to split the title and abstrct into words or other kinds of tokens.
-        Defaults to ``WordTokenizer()``.
     token_indexers : ``Dict[str, TokenIndexer]``, optional
         Indexers used to define input token representations. Defaults to ``{"tokens":
         SingleIdTokenIndexer()}``.
