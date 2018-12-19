@@ -1,0 +1,1 @@
+from fewrel.iterators.n_way_k_shot_iterator import NWayKShotIterator
