@@ -28,6 +28,9 @@ class FewRelDatasetReader(DatasetReader):
         label: ``LabelField``
     Parameters
     ----------
+    max_len : ``int``
+        Limit the number of tokens for each text. This is important for computing the relative offset
+        of head and tail entities. (maybe there's a better way to handle this)
     lazy : ``bool`` (optional, default=False)
         Passed to ``DatasetReader``.  If this is ``True``, training will start sooner, but will
         take longer per batch.  This also allows training with datasets that are too large to fit
@@ -37,9 +40,11 @@ class FewRelDatasetReader(DatasetReader):
         SingleIdTokenIndexer()}``.
     """
     def __init__(self,
+                 max_len: int,
                  lazy: bool = False,
                  token_indexers: Dict[str, TokenIndexer] = None) -> None:
         super().__init__(lazy)
+        self._max_len = max_len
         self._token_indexers = token_indexers or {"tokens": SingleIdTokenIndexer()}
 
     @overrides
@@ -56,19 +61,36 @@ class FewRelDatasetReader(DatasetReader):
                     tail = (tail_indices[0], tail_indices[-1])
                     yield self.text_to_instance(tokens, head, tail, relation)
 
+    
+    def _add_offset_to_tokens(self, tokens, span, attr):
+        start, end = span
+        for i, token in enumerate(tokens):
+            offset = 0
+            if i > end:
+                offset = i - end
+            elif i < start:
+                offset = i - start
+            
+            setattr(token, attr, self._max_len + offset)
+
     @overrides
     def text_to_instance(self, text_tokens: List[str], head: Tuple[int, int], tail: Tuple[int, int],
                          relation: str=None) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
 
         # TODO: maybe support non-tokenized text input
-        text_tokens_field = TextField([Token(t) for t in text_tokens], self._token_indexers)
-        head_field = SpanField(head[0], head[1], text_tokens_field)
-        tail_field = SpanField(tail[0], tail[1], text_tokens_field)
+        tokens = [Token(t) for t in text_tokens[:self._max_len]]
+
+        self._add_offset_to_tokens(tokens, head, attr='offset_head')
+        self._add_offset_to_tokens(tokens, tail, attr='offset_tail')
+
+        text_tokens_field = TextField(tokens, self._token_indexers)
+        #head_field = SpanField(head[0], head[1], text_tokens_field)
+        #tail_field = SpanField(tail[0], tail[1], text_tokens_field)
         fields = {
                 'text': text_tokens_field,
-                'head': head_field,
-                'tail': tail_field
+                #'head': head_field,
+                #'tail': tail_field
             }
         if relation is not None:
             fields['label'] = LabelField(relation)

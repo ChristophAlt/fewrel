@@ -13,7 +13,7 @@ class TestNWayKShotIterator(AllenNlpTestCase):
         Q = 2
         NUM_INSTANCES = 9
 
-        reader = FewRelDatasetReader()
+        reader = FewRelDatasetReader(max_len=200)
         instances = ensure_list(reader.read('tests/fixtures/fewrel.json'))
 
         vocab = Vocabulary.from_instances(instances)

@@ -1,0 +1,1 @@
+from fewrel.token_indexers.offset_token_indexer import OffsetTokenIndexer
