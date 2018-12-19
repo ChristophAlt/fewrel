@@ -40,6 +40,3 @@ class TestNWayKShotIterator(AllenNlpTestCase):
 
         label_tensor = batch['label']
         assert label_tensor.shape[:2] == (BATCH_SIZE, N*Q)
-
-        print('Batch:', batch)
-        assert 1 == 0
