@@ -40,3 +40,9 @@ class TestNWayKShotIterator(AllenNlpTestCase):
 
         label_tensor = batch['label']
         assert label_tensor.shape[:2] == (BATCH_SIZE, N*Q)
+
+        metadata = batch['metadata'][0]
+        
+        assert metadata['N'] == N
+        assert metadata['K'] == K
+        assert metadata['Q'] == Q

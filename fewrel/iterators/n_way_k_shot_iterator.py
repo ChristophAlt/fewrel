@@ -10,7 +10,7 @@ import numpy as np
 from allennlp.common.checks import ConfigurationError
 from allennlp.common.util import lazy_groups_of, add_noise_to_dict_values
 from allennlp.data.dataset import Batch
-from allennlp.data.fields import ListField, LabelField
+from allennlp.data.fields import ListField, LabelField, MetadataField
 from allennlp.data.instance import Instance
 from allennlp.data.iterators.data_iterator import DataIterator
 from allennlp.data.vocabulary import Vocabulary
@@ -162,7 +162,8 @@ class NWayKShotIterator(DataIterator):
                 fields = {
                     'support': ListField([inst[self._text_field] for inst in all_support_instances]),
                     'query': ListField([inst[self._text_field] for inst in all_query_instances]),
-                    'label': ListField([LabelField(idx, skip_indexing=True) for idx in all_labels])
+                    'label': ListField([LabelField(idx, skip_indexing=True) for idx in all_labels]),
+                    'metadata': MetadataField(dict(N=N, K=K, Q=Q))
                 }
                 n_way_k_shot_instances.append(Instance(fields))
 
