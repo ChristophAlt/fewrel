@@ -7,7 +7,7 @@ The repo contains additional functionality, not implemented in AllenNLP, for few
 - Few-shot relation classifier, configurable via jsonnet files (see experiments/config/ for examples)
 - Relative offset embeddings (required for non-sequential models, i.e. CNN)
 - Additional models for few-shot classification
-  - Prototypcial Network
+  - Prototypicial Network
 
 ## Setup
 `$ pip install -r requirements.txt`
