@@ -1,2 +1,2 @@
-from fewrel.models.proto import Proto
-from fewrel.models.relation_classifier import FewShotRelationClassifier
+from fewrel.models.few_shot_relation_classifier import FewShotRelationClassifier
+from fewrel.models.few_shot import *

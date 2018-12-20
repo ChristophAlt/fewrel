@@ -45,11 +45,10 @@
       "num_filters": 230,
       "ngram_filter_sizes": [3]
     },
-    "few_shot_model": "proto"
-    // "few_shot_model": {
-    //   "type": "proto",
-    //   "hidden_dim": 20
-    // },
+    "few_shot_model": {
+      "type": "prototypical_network",
+      "hidden_dim": 230
+    },
   },
   "iterator": {
     "type": "n_way_k_shot",
