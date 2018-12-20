@@ -24,28 +24,26 @@
     "text_field_embedder": {
       "tokens": {
         "type": "embedding",
-        "pretrained_file": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.6B.100d.txt.gz",
-        "embedding_dim": 100,
+        "pretrained_file": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.6B.50d.txt.gz",
+        "embedding_dim": 50,
         "trainable": false
       },
       "offset_head": {
         "type": "embedding",
-        "embedding_dim": 10,
+        "embedding_dim": 5,
         "trainable": true
       },
       "offset_tail": {
         "type": "embedding",
-        "embedding_dim": 10,
+        "embedding_dim": 5,
         "trainable": true
       },
     },
     "support_encoder": {
-      "type": "lstm",
-      "bidirectional": true,
-      "input_size": 120,
-      "hidden_size": 10,
-      "num_layers": 1,
-      "dropout": 0.2
+      "type": "cnn",
+      "embedding_dim": "60",
+      "num_filters": 230,
+      "ngram_filter_sizes": [3]
     },
     "few_shot_model": "proto"
     // "few_shot_model": {
@@ -56,14 +54,22 @@
   "iterator": {
     "type": "n_way_k_shot",
     "batch_size": 4,
-    "n": 10,
+    "n": 20,
     "k": 5,
-    "q": 2,
+    "q": 5,
     "instances_per_epoch": 3000
   },
+  "validation_iterator": {
+    "type": "n_way_k_shot",
+    "batch_size": 4,
+    "n": 5,
+    "k": 5,
+    "q": 5,
+    "instances_per_epoch": 12000
+  },
   "trainer": {
-    "num_epochs": 40,
-    "patience": 10,
+    "num_epochs": 30,
+    "patience": 5,
     "cuda_device": 0,
     "grad_clipping": 5.0,
     "validation_metric": "+accuracy",
