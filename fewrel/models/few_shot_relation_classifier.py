@@ -100,7 +100,7 @@ class FewShotRelationClassifier(Model):
         K = metadata[0]['K']
         Q = metadata[0]['Q']
 
-        # [B x N x K, seq_len]
+        # Shape: [B x N x K, seq_len]
         embedded_support = self.text_field_embedder(support)
         # [B x N x K, seq_len, d_emb]
         support_mask = util.get_text_field_mask(support, num_wrapping_dims=1)
@@ -111,12 +111,12 @@ class FewShotRelationClassifier(Model):
         support_mask = support_mask.view(-1, support_mask.size(-1))
         # ====
 
-        # [B x N x K, d_enc]
+        # Shape: [B x N x K, d_enc]
         encoded_support = self.support_encoder(embedded_support, support_mask)
 
-        # [B x N x Q, seq_len]
+        # Shape: [B x N x Q, seq_len]
         embedded_query = self.text_field_embedder(query)
-        # [B x N x Q, seq_len, d_emb]
+        # Shape: [B x N x Q, seq_len, d_emb]
         query_mask = util.get_text_field_mask(query, num_wrapping_dims=1)
 
         # ====
@@ -125,15 +125,17 @@ class FewShotRelationClassifier(Model):
         query_mask = query_mask.view(-1, query_mask.size(-1))
         # ====
 
-        # [B x N x Q, d_enc]
+        # Shape: [B x N x Q, d_enc]
         encoded_query = self.query_encoder(embedded_query, query_mask)
 
-        # [B, Q x N]
+        # Shape: [B, Q, N]
         logits = self.few_shot_model(encoded_support, encoded_query, N, K, Q)
 
         output_dict = {'logits': logits}
         if label is not None:
+            # Shape: [B x Q]
             label = label.view(-1)
+            # Shape: [B x Q, N]
             logits = logits.view(-1, logits.size(-1))
 
             loss = self.loss(logits, label)
