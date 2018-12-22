@@ -7,7 +7,7 @@ from overrides import overrides
 from allennlp.common import Params
 from allennlp.common.file_utils import cached_path
 from allennlp.data.dataset_readers.dataset_reader import DatasetReader
-from allennlp.data.fields import LabelField, TextField, SpanField
+from allennlp.data.fields import LabelField, TextField
 from allennlp.data.instance import Instance
 from allennlp.data.tokenizers import Token
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
@@ -39,10 +39,13 @@ class FewRelDatasetReader(DatasetReader):
         Indexers used to define input token representations. Defaults to ``{"tokens":
         SingleIdTokenIndexer()}``.
     """
-    def __init__(self,
-                 max_len: int,
-                 lazy: bool = False,
-                 token_indexers: Dict[str, TokenIndexer] = None) -> None:
+
+    def __init__(
+        self,
+        max_len: int,
+        lazy: bool = False,
+        token_indexers: Dict[str, TokenIndexer] = None,
+    ) -> None:
         super().__init__(lazy)
         self._max_len = max_len
         self._token_indexers = token_indexers or {"tokens": SingleIdTokenIndexer()}
@@ -54,14 +57,13 @@ class FewRelDatasetReader(DatasetReader):
             data = json.load(data_file)
             for relation, examples in data.items():
                 for example in examples:
-                    tokens = example['tokens']
-                    head_indices = example['h'][2][0]
+                    tokens = example["tokens"]
+                    head_indices = example["h"][2][0]
                     head = (head_indices[0], head_indices[-1])
-                    tail_indices = example['t'][2][0]
+                    tail_indices = example["t"][2][0]
                     tail = (tail_indices[0], tail_indices[-1])
                     yield self.text_to_instance(tokens, head, tail, relation)
 
-    
     def _add_offset_to_tokens(self, tokens, span, attr):
         start, end = span
         for i, token in enumerate(tokens):
@@ -70,28 +72,27 @@ class FewRelDatasetReader(DatasetReader):
                 offset = i - end
             elif i < start:
                 offset = i - start
-            
+
             setattr(token, attr, self._max_len + offset)
 
     @overrides
-    def text_to_instance(self, text_tokens: List[str], head: Tuple[int, int], tail: Tuple[int, int],
-                         relation: str=None) -> Instance:  # type: ignore
+    def text_to_instance(
+        self,
+        text_tokens: List[str],
+        head: Tuple[int, int],
+        tail: Tuple[int, int],
+        relation: str = None,
+    ) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
 
         # TODO: maybe support non-tokenized text input
-        tokens = [Token(t) for t in text_tokens[:self._max_len]]
+        tokens = [Token(t) for t in text_tokens[: self._max_len]]
 
-        self._add_offset_to_tokens(tokens, head, attr='offset_head')
-        self._add_offset_to_tokens(tokens, tail, attr='offset_tail')
+        self._add_offset_to_tokens(tokens, head, attr="offset_head")
+        self._add_offset_to_tokens(tokens, tail, attr="offset_tail")
 
         text_tokens_field = TextField(tokens, self._token_indexers)
-        #head_field = SpanField(head[0], head[1], text_tokens_field)
-        #tail_field = SpanField(tail[0], tail[1], text_tokens_field)
-        fields = {
-                'text': text_tokens_field,
-                #'head': head_field,
-                #'tail': tail_field
-            }
+        fields = {"text": text_tokens_field}
         if relation is not None:
-            fields['label'] = LabelField(relation)
+            fields["label"] = LabelField(relation)
         return Instance(fields)

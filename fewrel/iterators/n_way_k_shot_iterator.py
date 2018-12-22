@@ -17,10 +17,13 @@ from allennlp.data.vocabulary import Vocabulary
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-def sort_by_padding(instances: List[Instance],
-                    sorting_keys: List[Tuple[str, str]],  # pylint: disable=invalid-sequence-index
-                    vocab: Vocabulary,
-                    padding_noise: float = 0.0) -> List[Instance]:
+
+def sort_by_padding(
+    instances: List[Instance],
+    sorting_keys: List[Tuple[str, str]],  # pylint: disable=invalid-sequence-index
+    vocab: Vocabulary,
+    padding_noise: float = 0.0,
+) -> List[Instance]:
     """
     Sorts the instances by their padding lengths, using the keys in
     ``sorting_keys`` (in the order in which they are provided).  ``sorting_keys`` is a list of
@@ -30,18 +33,28 @@ def sort_by_padding(instances: List[Instance],
     for instance in instances:
         # Make sure instance is indexed before calling .get_padding
         instance.index_fields(vocab)
-        padding_lengths = cast(Dict[str, Dict[str, float]], instance.get_padding_lengths())
+        padding_lengths = cast(
+            Dict[str, Dict[str, float]], instance.get_padding_lengths()
+        )
         if padding_noise > 0.0:
             noisy_lengths = {}
             for field_name, field_lengths in padding_lengths.items():
-                noisy_lengths[field_name] = add_noise_to_dict_values(field_lengths, padding_noise)
+                noisy_lengths[field_name] = add_noise_to_dict_values(
+                    field_lengths, padding_noise
+                )
             padding_lengths = noisy_lengths
-        instance_with_lengths = ([padding_lengths[field_name][padding_key]
-                                  for (field_name, padding_key) in sorting_keys],
-                                 instance)
+        instance_with_lengths = (
+            [
+                padding_lengths[field_name][padding_key]
+                for (field_name, padding_key) in sorting_keys
+            ],
+            instance,
+        )
         instances_with_lengths.append(instance_with_lengths)
     instances_with_lengths.sort(key=lambda x: x[0])
-    return [instance_with_lengths[-1] for instance_with_lengths in instances_with_lengths]
+    return [
+        instance_with_lengths[-1] for instance_with_lengths in instances_with_lengths
+    ]
 
 
 @DataIterator.register("n_way_k_shot")
@@ -84,41 +97,47 @@ class NWayKShotIterator(DataIterator):
         See :class:`BasicIterator`.
     """
 
-    def __init__(self,
-                 n: int,
-                 k: int,
-                 q: int,
-                 instances_per_epoch: int,
-                 text_field: str='text',
-                 label_field: str='label',
-                 #sorting_keys: List[Tuple[str, str]],
-                 #padding_noise: float = 0.1,
-                 #biggest_batch_first: bool = False,
-                 batch_size: int = 32,
-                 max_instances_in_memory: int = None,
-                 cache_instances: bool = False,
-                 track_epoch: bool = False,
-                 maximum_samples_per_batch: Tuple[str, int] = None) -> None:
+    def __init__(
+        self,
+        n: int,
+        k: int,
+        q: int,
+        instances_per_epoch: int,
+        text_field: str = "text",
+        label_field: str = "label",
+        # sorting_keys: List[Tuple[str, str]],
+        # padding_noise: float = 0.1,
+        # biggest_batch_first: bool = False,
+        batch_size: int = 32,
+        max_instances_in_memory: int = None,
+        cache_instances: bool = False,
+        track_epoch: bool = False,
+        maximum_samples_per_batch: Tuple[str, int] = None,
+    ) -> None:
         # if not sorting_keys:
         #     raise ConfigurationError("BucketIterator requires sorting_keys to be specified")
 
-        super().__init__(cache_instances=cache_instances,
-                         track_epoch=track_epoch,
-                         batch_size=batch_size,
-                         instances_per_epoch=instances_per_epoch,
-                         max_instances_in_memory=max_instances_in_memory,
-                         maximum_samples_per_batch=maximum_samples_per_batch)
+        super().__init__(
+            cache_instances=cache_instances,
+            track_epoch=track_epoch,
+            batch_size=batch_size,
+            instances_per_epoch=instances_per_epoch,
+            max_instances_in_memory=max_instances_in_memory,
+            maximum_samples_per_batch=maximum_samples_per_batch,
+        )
         self._n = n
         self._k = k
         self._q = q
         self._text_field = text_field
         self._label_field = label_field
-        #self._sorting_keys = sorting_keys
-        #self._padding_noise = padding_noise
-        #self._biggest_batch_first = biggest_batch_first
+        # self._sorting_keys = sorting_keys
+        # self._padding_noise = padding_noise
+        # self._biggest_batch_first = biggest_batch_first
 
     @overrides
-    def _create_batches(self, instances: Iterable[Instance], shuffle: bool) -> Iterable[Batch]:
+    def _create_batches(
+        self, instances: Iterable[Instance], shuffle: bool
+    ) -> Iterable[Batch]:
         def index_with_list(l, index):
             return [l[i] for i in index]
 
@@ -130,8 +149,10 @@ class NWayKShotIterator(DataIterator):
             # from the n classes, sample k + q instances
             # create a batch of
             whole_division = {}
-            grouping_func = lambda inst: inst['label'].label
-            for label, grouped_instances in groupby(sorted(instances, key=grouping_func), key=grouping_func):
+            grouping_func = lambda inst: inst["label"].label
+            for label, grouped_instances in groupby(
+                sorted(instances, key=grouping_func), key=grouping_func
+            ):
                 whole_division[label] = list(grouped_instances)
 
             N = self._n
@@ -148,9 +169,14 @@ class NWayKShotIterator(DataIterator):
                 target_labels = random.sample(labels, N)
                 for idx, label in enumerate(target_labels):
                     label_instances = whole_division[label]
-                    indices = np.random.choice(len(label_instances), K + Q, replace=False)
+                    indices = np.random.choice(
+                        len(label_instances), K + Q, replace=False
+                    )
                     selected_instances = index_with_list(label_instances, indices)
-                    support_instances, query_instances = selected_instances[:K], selected_instances[K:]
+                    support_instances, query_instances = (
+                        selected_instances[:K],
+                        selected_instances[K:],
+                    )
                     all_support_instances += support_instances
                     all_query_instances += query_instances
                     all_labels += [idx] * Q
@@ -160,10 +186,16 @@ class NWayKShotIterator(DataIterator):
                 all_labels = index_with_list(all_labels, indices_perm)
 
                 fields = {
-                    'support': ListField([inst[self._text_field] for inst in all_support_instances]),
-                    'query': ListField([inst[self._text_field] for inst in all_query_instances]),
-                    'label': ListField([LabelField(idx, skip_indexing=True) for idx in all_labels]),
-                    'metadata': MetadataField(dict(N=N, K=K, Q=Q))
+                    "support": ListField(
+                        [inst[self._text_field] for inst in all_support_instances]
+                    ),
+                    "query": ListField(
+                        [inst[self._text_field] for inst in all_query_instances]
+                    ),
+                    "label": ListField(
+                        [LabelField(idx, skip_indexing=True) for idx in all_labels]
+                    ),
+                    "metadata": MetadataField(dict(N=N, K=K, Q=Q)),
                 }
                 n_way_k_shot_instances.append(Instance(fields))
 
@@ -175,8 +207,12 @@ class NWayKShotIterator(DataIterator):
 
             batches = []
             excess: Deque[Instance] = deque()
-            for batch_instances in lazy_groups_of(iter(instance_list), self._batch_size):
-                for possibly_smaller_batches in self._ensure_batch_is_sufficiently_small(batch_instances, excess):
+            for batch_instances in lazy_groups_of(
+                iter(instance_list), self._batch_size
+            ):
+                for (
+                    possibly_smaller_batches
+                ) in self._ensure_batch_is_sufficiently_small(batch_instances, excess):
                     batches.append(Batch(possibly_smaller_batches))
             if excess:
                 batches.append(Batch(excess))
