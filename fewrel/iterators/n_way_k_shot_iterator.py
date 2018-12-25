@@ -141,15 +141,14 @@ class NWayKShotIterator(DataIterator):
         def index_with_list(l, index):
             return [l[i] for i in index]
 
-        # TODO: handle case when instances do not fit in memory (for now, assume we have access to all instances at once).
+        # TODO: handle case when instances do not fit in memory
+        # (for now, assume we have access to all instances at once).
         for instance_list in self._memory_sized_lists(instances):
-
-            # group instances by label
-            # sample n classes
-            # from the n classes, sample k + q instances
-            # create a batch of
             whole_division = {}
-            grouping_func = lambda inst: inst["label"].label
+
+            def grouping_func(instance):
+                return instance["label"].label
+
             for label, grouped_instances in groupby(
                 sorted(instances, key=grouping_func), key=grouping_func
             ):

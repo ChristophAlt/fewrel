@@ -78,7 +78,7 @@ class FewRelDatasetReader(DatasetReader):
     @overrides
     def text_to_instance(
         self,
-        text_tokens: List[str],
+        tokens: List[str],
         head: Tuple[int, int],
         tail: Tuple[int, int],
         relation: str = None,
@@ -86,12 +86,12 @@ class FewRelDatasetReader(DatasetReader):
         # pylint: disable=arguments-differ
 
         # TODO: maybe support non-tokenized text input
-        tokens = [Token(t) for t in text_tokens[: self._max_len]]
+        text_tokens = [Token(t) for t in tokens[: self._max_len]]
 
-        self._add_offset_to_tokens(tokens, head, attr="offset_head")
-        self._add_offset_to_tokens(tokens, tail, attr="offset_tail")
+        self._add_offset_to_tokens(text_tokens, head, attr="offset_head")
+        self._add_offset_to_tokens(text_tokens, tail, attr="offset_tail")
 
-        text_tokens_field = TextField(tokens, self._token_indexers)
+        text_tokens_field = TextField(text_tokens, self._token_indexers)
         fields = {"text": text_tokens_field}
         if relation is not None:
             fields["label"] = LabelField(relation)
