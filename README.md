@@ -1,6 +1,6 @@
-# Experiment Environment for Few-Shot Relation Extraction
+# Few-Shot Relation Extraction with AllenNLP
 
-The repo contains additional functionality, not implemented in AllenNLP, for few-shot relation extraction / relation classification.
+The repo contains additional functionality, not implemented in [AllenNLP](https://allennlp.org), for few-shot relation extraction / relation classification.
 
 - Dataset reader for [FewRel](http://zhuhao.me/fewrel) dataset
 - N-way K-shot iterator, creating batches according to the few-shot scenario
